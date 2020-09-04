@@ -1,7 +1,8 @@
 #! /usr/bin/env bash
 
 set -e
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd .. && pwd)"
+PROJECT_ROOT=C:/source/fastapi_client
+export MSYS_NO_PATHCONV=1 
 
 CMDNAME=${0##*/}
 

@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 
 set -e
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd ../.. && pwd)"
+PROJECT_ROOT=C:/source/fastapi_client
 
 CMDNAME=${0##*/}
 
@@ -68,7 +68,7 @@ generate_in_docker_http() {
 }
 
 generate_in_docker_file() {
-  INPUT_FILE="$(cd "$(dirname "$INPUT")" && pwd )"/"$(basename "$INPUT")"
+  INPUT_FILE=$INPUT
 
   docker run --user $(id -u):$(id -g) --rm -v "$WORK_DIR":/generator-output -v "$PROJECT_ROOT":/local -v "${INPUT_FILE}":/openapi.json \
     $OPENAPI_IMAGE generate \
