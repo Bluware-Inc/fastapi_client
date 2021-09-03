@@ -19,6 +19,7 @@ WORK_DIR=""
 TEMP_DIR=""
 WITH_META=""
 MAP_LOCALHOST=""
+CLIENT_IMPORT_NAME=""
 
 usage() {
   exitcode="$1"
@@ -159,6 +160,7 @@ add_extra_python_template() {
 fill_import_name_template() {
   python_filename="$1"
   sed -i.bak "s/@IMPORT_NAME@/${IMPORT_NAME}/" "$python_filename"
+  sed -i.bak "s/@CLIENT_IMPORT_NAME@/${CLIENT_IMPORT_NAME}/" "$python_filename"
   rm "$python_filename".bak
 }
 
@@ -174,6 +176,10 @@ while [ $# -gt 0 ]; do
     ;;
   -i | --input)
     INPUT=$2
+    shift 2
+    ;;
+  -c | --client-import-name)
+    CLIENT_IMPORT_NAME=$2
     shift 2
     ;;
   -n | --import-name)
