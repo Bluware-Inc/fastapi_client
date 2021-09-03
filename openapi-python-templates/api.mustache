@@ -6,21 +6,57 @@ from uuid import UUID
 import pydantic
 import typer
 import yaml
-
-app = typer.Typer()
-
-bad = typer.style("bad", fg=typer.colors.WHITE, bg=typer.colors.RED)
+import click
 
 from @CLIENT_IMPORT_NAME@ import models as m
 
 from @CLIENT_IMPORT_NAME@.api_client import ApiClient
 
+client: ApiClient = None
+
+def callback(host: str = typer.Argument(..., envvar="API_GATEWAY_URI"), 
+             username: str = typer.Argument(..., envvar="VHS_USERNAME"),
+             password: str = typer.Argument(..., envvar="VHS_PASSWORD")
+             ):
+    global client
+    client = ApiClient()
+
+app = typer.Typer(callback=callback)
+
+bad = typer.style("bad", fg=typer.colors.WHITE, bg=typer.colors.RED)
+
+
+_get_click_type = typer.main.get_click_type
+
+
+def supersede_get_click_type(
+    *, annotation: Any, parameter_info: typer.main.ParameterInfo
+) -> click.ParamType:
+    if hasattr(annotation, "parse_raw"):
+
+        class CustomParamType(click.ParamType):
+            def convert(self, value, param, ctx):
+                return annotation.parse_raw(value)
+
+        return CustomParamType()
+    else:
+        return _get_click_type(annotation=annotation, parameter_info=parameter_info)
+
+
+typer.main.get_click_type = supersede_get_click_type
+
 
 {{#operations}}
-
 {{#operation}}
 @app.command()
-def {{operationId}}(client: ApiClient, {{#allParams}}{{#required}}{{paramName}}: {{>_dataTypeApi}}{{/required}}{{^required}}{{paramName}}: Optional[{{>_dataTypeApi}}] = None{{/required}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) -> {{>_returnType}}:
+def {{operationId}}( {{#allParams}}
+                        {{#required}}
+                            {{#defaultValue}}{{paramName}}: {{>_dataTypeApi}}=typer.Argument({{{defaultValue}}}, help="{{description}}"){{/defaultValue}}
+                            {{^defaultValue}}{{paramName}}: {{>_dataTypeApi}}=typer.Argument(..., help="{{description}}"){{/defaultValue}}
+                        {{/required}}
+                        {{^required}}{{paramName}}: Optional[{{>_dataTypeApi}}] = typer.Argument(None, help="{{description}}"){{/required}}
+                        {{#hasMore}}, {{/hasMore}}{{/allParams}}
+                        ) -> {{>_returnType}}:
 {{#notes}}
     """
     {{{notes}}}
@@ -30,7 +66,7 @@ def {{operationId}}(client: ApiClient, {{#allParams}}{{#required}}{{paramName}}:
         result = client.{{classVarName}}.{{operationId}}({{#allParams}}{{paramName}}={{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}})
     except Exception as e:
         typer.echo(str(e) + bad)
-        typer.exit()
+        typer.Exit()
 
     if isinstance(result, pydantic.BaseModel):
         typer.echo(yaml.dump(result.dict()))

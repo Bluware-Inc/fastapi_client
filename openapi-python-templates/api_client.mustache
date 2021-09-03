@@ -6,7 +6,7 @@ import typer
 app = typer.Typer()
 
 {{#apiInfo}}{{#apis}}
-app.add_typer({{classVarName}}.app, name={{classVarName}}){{/apis}}{{/apiInfo}}
+app.add_typer({{classVarName}}.app, name="{{baseName}}"){{/apis}}{{/apiInfo}}
 
 if __name__ == "__main__":
     app()
