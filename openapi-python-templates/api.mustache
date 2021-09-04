@@ -18,16 +18,11 @@ app = typer.Typer()
 {{#operation}}
 @app.command()
 def {{operationId}}( {{#allParams}}
-                        {{#isModel}}
-                            {{paramName}}: typer.FileText = typer.Argument(..., help="{{description}}")
-                        {{/isModel}}
-                        {{^isModel}}
                         {{#required}}
-                            {{#defaultValue}}{{paramName}}: {{>_dataTypeApi}}=typer.Argument({{{defaultValue}}}, help="{{description}}"){{/defaultValue}}
-                            {{^defaultValue}}{{paramName}}: {{>_dataTypeApi}}=typer.Argument(..., help="{{description}}"){{/defaultValue}}
+                            {{#defaultValue}}{{paramName}}: {{>_dataTypeApi}}=typer.Option({{{defaultValue}}}, help="{{description}}"){{/defaultValue}}
+                            {{^defaultValue}}{{paramName}}: {{>_dataTypeApi}}=typer.Option(..., help="{{description}}"){{/defaultValue}}
                         {{/required}}
-                        {{^required}}{{paramName}}: Optional[{{>_dataTypeApi}}] = typer.Argument(None, help="{{description}}"){{/required}}
-                        {{/isModel}}
+                        {{^required}}{{paramName}}: Optional[{{>_dataTypeApi}}] = typer.Option(None, help="{{description}}"){{/required}}
                         {{#hasMore}}, {{/hasMore}}{{/allParams}}
                         ) -> {{>_returnType}}:
 {{#notes}}
