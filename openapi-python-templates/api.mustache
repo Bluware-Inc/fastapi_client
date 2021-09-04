@@ -1,60 +1,33 @@
 # flake8: noqa E501
 import json
-from typing import Any, Awaitable, Dict, IO, List, Optional, TYPE_CHECKING
+from typing import Any, Awaitable, Dict, IO, List, Optional, TYPE_CHECKIN
 from datetime import date, datetime, timedelta
 from uuid import UUID
 import pydantic
 import typer
 import yaml
-import click
 
 from @CLIENT_IMPORT_NAME@ import models as m
 
-from @CLIENT_IMPORT_NAME@.api_client import ApiClient
+from @CLIENT_IMPORT_NAME@.api_client import SyncApis
 
-client: ApiClient = None
+from @IMPORT_NAME@.cli_client import get_client_api
 
-def callback(host: str = typer.Argument(..., envvar="API_GATEWAY_URI"), 
-             username: str = typer.Argument(..., envvar="VHS_USERNAME"),
-             password: str = typer.Argument(..., envvar="VHS_PASSWORD")
-             ):
-    global client
-    client = ApiClient()
-
-app = typer.Typer(callback=callback)
-
-bad = typer.style("bad", fg=typer.colors.WHITE, bg=typer.colors.RED)
-
-
-_get_click_type = typer.main.get_click_type
-
-
-def supersede_get_click_type(
-    *, annotation: Any, parameter_info: typer.main.ParameterInfo
-) -> click.ParamType:
-    if hasattr(annotation, "parse_raw"):
-
-        class CustomParamType(click.ParamType):
-            def convert(self, value, param, ctx):
-                return annotation.parse_raw(value)
-
-        return CustomParamType()
-    else:
-        return _get_click_type(annotation=annotation, parameter_info=parameter_info)
-
-
-typer.main.get_click_type = supersede_get_click_type
-
-
+app = typer.Typer()
 {{#operations}}
 {{#operation}}
 @app.command()
 def {{operationId}}( {{#allParams}}
+                        {{#isModel}}
+                            {{paramName}}: typer.FileText = typer.Argument(..., help="{{description}}")
+                        {{/isModel}}
+                        {{^isModel}}
                         {{#required}}
                             {{#defaultValue}}{{paramName}}: {{>_dataTypeApi}}=typer.Argument({{{defaultValue}}}, help="{{description}}"){{/defaultValue}}
                             {{^defaultValue}}{{paramName}}: {{>_dataTypeApi}}=typer.Argument(..., help="{{description}}"){{/defaultValue}}
                         {{/required}}
                         {{^required}}{{paramName}}: Optional[{{>_dataTypeApi}}] = typer.Argument(None, help="{{description}}"){{/required}}
+                        {{/isModel}}
                         {{#hasMore}}, {{/hasMore}}{{/allParams}}
                         ) -> {{>_returnType}}:
 {{#notes}}
@@ -63,16 +36,26 @@ def {{operationId}}( {{#allParams}}
     """
 {{/notes}}
     try:
-        result = client.{{classVarName}}.{{operationId}}({{#allParams}}{{paramName}}={{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}})
+        sync_apis: SyncApis = get_client_api()
+        result = sync_apis.{{classVarName}}.{{operationId}}({{#allParams}}
+            {{#isModel}}
+                {{paramName}}={{>_dataTypeApi}}.parse_raw({{paramName}}.read()),
+            {{/isModel}}
+            {{^isModel}}
+                {{paramName}}={{paramName}},
+            {{/isModel}}
+            {{/allParams}})
     except Exception as e:
-        typer.echo(str(e) + bad)
-        typer.Exit()
+        typer.echo(typer.style(str(e), fg=typer.colors.WHITE, bg=typer.colors.RED))
+        {{! client.close() }}
+        return
 
     if isinstance(result, pydantic.BaseModel):
         typer.echo(yaml.dump(result.dict()))
     else:
         typer.echo(yaml.dump(result))
 
+    {{! client.close() }}
     return result
 {{/operation}}
 {{/operations}}
