@@ -33,12 +33,7 @@ def {{operationId}}( {{#allParams}}
     try:
         sync_apis: SyncApis = get_client_api()
         result = sync_apis.{{classVarName}}.{{operationId}}({{#allParams}}
-            {{#isModel}}
-                {{paramName}}={{>_dataTypeApi}}.parse_raw({{paramName}}.read()),
-            {{/isModel}}
-            {{^isModel}}
-                {{paramName}}={{paramName}},
-            {{/isModel}}
+            {{paramName}}={{paramName}},
             {{/allParams}})
     except Exception as e:
         typer.echo(typer.style(str(e), fg=typer.colors.WHITE, bg=typer.colors.RED))
