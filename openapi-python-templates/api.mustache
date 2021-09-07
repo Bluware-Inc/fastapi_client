@@ -18,13 +18,18 @@ app = typer.Typer()
 {{#operation}}
 @app.command()
 def {{operationId}}( {{#allParams}}
-                        {{#required}}
-                            {{#defaultValue}}{{paramName}}: {{>_dataTypeApi}}=typer.Option({{{defaultValue}}}, help="{{description}}"){{/defaultValue}}
-                            {{^defaultValue}}{{paramName}}: {{>_dataTypeApi}}=typer.Option(..., help="{{description}}"){{/defaultValue}}
-                        {{/required}}
-                        {{^required}}{{paramName}}: Optional[{{>_dataTypeApi}}] = typer.Option(None, help="{{description}}"){{/required}}
+                        {{#isModel}}
+                            request: {{>_dataTypeApi}}=typer.Option(..., help="{{description}}")
+                        {{/isModel}}
+                        {{^isModel}}
+                            {{#required}}
+                                {{#defaultValue}}{{paramName}}: {{>_dataTypeApi}}=typer.Option({{{defaultValue}}}, help="{{description}}"){{/defaultValue}}
+                                {{^defaultValue}}{{paramName}}: {{>_dataTypeApi}}=typer.Option(..., help="{{description}}"){{/defaultValue}}
+                            {{/required}}
+                            {{^required}}{{paramName}}: Optional[{{>_dataTypeApi}}] = typer.Option(None, help="{{description}}"){{/required}}
+                        {{/isModel}}
                         {{#hasMore}}, {{/hasMore}}{{/allParams}}
-                        ) -> {{>_returnType}}:
+                        ) -> None:
 {{#notes}}
     """
     {{{notes}}}
@@ -32,8 +37,13 @@ def {{operationId}}( {{#allParams}}
 {{/notes}}
     try:
         sync_apis: SyncApis = get_client_api()
-        result = sync_apis.{{classVarName}}.{{operationId}}({{#allParams}}
-            {{paramName}}={{paramName}},
+        result: {{>_returnType}} = sync_apis.{{classVarName}}.{{operationId}}({{#allParams}}
+            {{#isModel}}
+                {{paramName}}=request,
+            {{/isModel}}
+            {{^isModel}}
+                {{paramName}}={{paramName}},
+            {{/isModel}}
             {{/allParams}})
     except Exception as e:
         typer.echo(typer.style(str(e), fg=typer.colors.WHITE, bg=typer.colors.RED))
@@ -46,7 +56,6 @@ def {{operationId}}( {{#allParams}}
         typer.echo(yaml.dump(result))
 
     {{! client.close() }}
-    return result
 {{/operation}}
 {{/operations}}
     
