@@ -9,11 +9,11 @@ from example.client.api.store_api import AsyncStoreApi, SyncStoreApi
 from example.client.api.user_api import AsyncUserApi, SyncUserApi
 from example.client.exceptions import ResponseHandlingException, UnexpectedResponse
 
-ClientT = TypeVar("ClientT", bound="ApiClient")
+AsyncClientT = TypeVar("AsyncClientT", bound="AsyncApiClient")
 
 
-class AsyncApis(Generic[ClientT]):
-    def __init__(self, client: ClientT):
+class AsyncApis(Generic[AsyncClientT]):
+    def __init__(self, client: AsyncClientT):
         self.client = client
 
         self.pet_api = AsyncPetApi(self.client)
@@ -21,8 +21,8 @@ class AsyncApis(Generic[ClientT]):
         self.user_api = AsyncUserApi(self.client)
 
 
-class SyncApis(Generic[ClientT]):
-    def __init__(self, client: ClientT):
+class SyncApis(Generic[AsyncClientT]):
+    def __init__(self, client: AsyncClientT):
         self.client = client
 
         self.pet_api = SyncPetApi(self.client)
@@ -31,14 +31,14 @@ class SyncApis(Generic[ClientT]):
 
 
 T = TypeVar("T")
-Send = Callable[[Request], Awaitable[Response]]
-MiddlewareT = Callable[[Request, Send], Awaitable[Response]]
+AsyncSend = Callable[[Request], Awaitable[Response]]
+AsyncMiddlewareT = Callable[[Request, AsyncSend], Awaitable[Response]]
 
 
-class ApiClient:
+class AsyncApiClient:
     def __init__(self, host: str = None, **kwargs: Any) -> None:
         self.host = host
-        self.middleware: MiddlewareT = BaseMiddleware()
+        self.middleware: AsyncMiddlewareT = BaseAsyncMiddleware()
         self._async_client = AsyncClient(**kwargs)
 
     @overload
@@ -62,20 +62,6 @@ class ApiClient:
         request = Request(method, url, **kwargs)
         return await self.send(request, type_)
 
-    @overload
-    def request_sync(self, *, type_: Type[T], **kwargs: Any) -> T:
-        ...
-
-    @overload  # noqa F811
-    def request_sync(self, *, type_: None, **kwargs: Any) -> None:
-        ...
-
-    def request_sync(self, *, type_: Any, **kwargs: Any) -> Any:  # noqa F811
-        """
-        This method is not used by the generated apis, but is included for convenience
-        """
-        return get_event_loop().run_until_complete(self.request(type_=type_, **kwargs))
-
     async def send(self, request: Request, type_: Type[T]) -> T:
         response = await self.middleware(request, self.send_inner)
         if response.status_code in [200, 201]:
@@ -92,10 +78,10 @@ class ApiClient:
             raise ResponseHandlingException(e)
         return response
 
-    def add_middleware(self, middleware: MiddlewareT) -> None:
+    def add_middleware(self, middleware: AsyncMiddlewareT) -> None:
         current_middleware = self.middleware
 
-        async def new_middleware(request: Request, call_next: Send) -> Response:
+        async def new_middleware(request: Request, call_next: AsyncSend) -> Response:
             async def inner_send(request: Request) -> Response:
                 return await current_middleware(request, call_next)
 
@@ -104,6 +90,6 @@ class ApiClient:
         self.middleware = new_middleware
 
 
-class BaseMiddleware:
-    async def __call__(self, request: Request, call_next: Send) -> Response:
+class BaseAsyncMiddleware:
+    async def __call__(self, request: Request, call_next: AsyncSend) -> Response:
         return await call_next(request)
