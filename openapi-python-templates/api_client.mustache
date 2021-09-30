@@ -2,11 +2,13 @@ import typer
 
 {{#apiInfo}}{{#apis}}import @IMPORT_NAME@.api.{{classVarName}} as {{classVarName}}
 {{/apis}}{{/apiInfo}}
+from vhubs_cli.cli_client import cli_client_commands
 
 app = typer.Typer()
 
 {{#apiInfo}}{{#apis}}
 app.add_typer({{classVarName}}.app, name="{{baseName}}"){{/apis}}{{/apiInfo}}
+cli_client_commands(app)
 
 if __name__ == "__main__":
     app()
