@@ -23,10 +23,10 @@ def {{operationId}}( {{#allParams}}
                         {{/isModel}}
                         {{^isModel}}
                             {{#required}}
-                                {{#defaultValue}}{{paramName}}: {{>_dataTypeApi}}=typer.Option({{{defaultValue}}}, help="{{description}}"){{/defaultValue}}
-                                {{^defaultValue}}{{paramName}}: {{>_dataTypeApi}}=typer.Option(..., help="{{description}}"){{/defaultValue}}
+                                {{#defaultValue}}{{paramName}}: {{>_dataTypeApi}}=typer.Option({{{defaultValue}}}, help="{{description}}", prompt=True){{/defaultValue}}
+                                {{^defaultValue}}{{paramName}}: {{>_dataTypeApi}}=typer.Option(..., help="{{description}}", prompt=True){{/defaultValue}}
                             {{/required}}
-                            {{^required}}{{paramName}}: Optional[{{>_dataTypeApi}}] = typer.Option(None, help="{{description}}"){{/required}}
+                            {{^required}}{{paramName}}: Optional[{{>_dataTypeApi}}] = typer.Option(None, help="{{description}}", prompt=True){{/required}}
                         {{/isModel}}
                         {{#hasMore}}, {{/hasMore}}{{/allParams}}
                         ) -> None:
