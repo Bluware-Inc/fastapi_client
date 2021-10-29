@@ -19,7 +19,7 @@ app = typer.Typer()
 @app.command()
 def {{operationId}}( {{#allParams}}
                         {{#isModel}}
-                            request: {{>_dataTypeApi}}=typer.Option(..., help="{{description}}, prompt=True")
+                            request: {{>_dataTypeApi}}=typer.Option(..., help="{{description}}", prompt=True)
                         {{/isModel}}
                         {{^isModel}}
                             {{#required}}
