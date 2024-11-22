@@ -19,7 +19,7 @@ class Async{{classname}}:
         self.api_client = api_client
 
 {{#operation}}
-    async def {{operationId}}(self, {{#allParams}}{{#required}}{{paramName}}: {{>_dataTypeApi}}{{/required}}{{^required}}{{paramName}}: Optional[{{>_dataTypeApi}}] = None{{/required}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) -> {{>_returnType}}:
+    async def {{operationId}}(self, {{#allParams}}{{#required}}{{paramName}}: {{>_dataTypeApi}}{{/required}}{{^required}}{{paramName}}: Optional[{{>_dataTypeApi}}] = None{{/required}},{{#hasMore}}, {{/hasMore}}{{/allParams}}) -> {{>_returnType}}:
 {{#notes}}
         """
         {{{notes}}}
@@ -29,7 +29,7 @@ class Async{{classname}}:
         path_params = {
 {{#pathParams}}
 {{#required}}
-            "{{baseName}}": str({{paramName}}){{#hasMore}},{{/hasMore}}
+            "{{baseName}}": str({{paramName}}),{{#hasMore}},{{/hasMore}}
 {{/required}}
 {{/pathParams}}
         }
@@ -45,7 +45,7 @@ class Async{{classname}}:
         query_params: Dict[str, Any] = {
 {{#queryParams}}
 {{#required}}
-            "{{baseName}}": str({{paramName}}){{#hasMore}},{{/hasMore}}
+            "{{baseName}}": str({{paramName}}),{{#hasMore}},{{/hasMore}}
 {{/required}}
 {{/queryParams}}
         }
@@ -110,7 +110,7 @@ class Async{{classname}}:
 
 {{/bodyParam}}
         return await self.api_client.request(
-            type_={{>_returnType}},
+            type_={{>_returnType}}, # type: ignore
             method="{{httpMethod}}",
             url="{{{path}}}",
             {{#pathParams.0}}path_params=path_params,{{/pathParams.0}}
@@ -131,7 +131,7 @@ class Sync{{classname}}:
         self.api_client = api_client
         
 {{#operation}}
-    def {{operationId}}(self, {{#allParams}}{{#required}}{{paramName}}: {{>_dataTypeApi}}{{/required}}{{^required}}{{paramName}}: Optional[{{>_dataTypeApi}}] = None{{/required}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) -> {{>_returnType}}:
+    def {{operationId}}(self, {{#allParams}}{{#required}}{{paramName}}: {{>_dataTypeApi}}{{/required}}{{^required}}{{paramName}}: Optional[{{>_dataTypeApi}}] = None{{/required}},{{#hasMore}}, {{/hasMore}}{{/allParams}}) -> {{>_returnType}}:
 {{#notes}}
         """
         {{{notes}}}
@@ -141,7 +141,7 @@ class Sync{{classname}}:
         path_params = {
 {{#pathParams}}
 {{#required}}
-            "{{baseName}}": str({{paramName}}){{#hasMore}},{{/hasMore}}
+            "{{baseName}}": str({{paramName}}),{{#hasMore}},{{/hasMore}}
 {{/required}}
 {{/pathParams}}
         }
@@ -222,7 +222,7 @@ class Sync{{classname}}:
 
 {{/bodyParam}}
         return self.api_client.request(
-            type_={{>_returnType}},
+            type_={{>_returnType}}, # type: ignore
             method="{{httpMethod}}",
             url="{{{path}}}",
             {{#pathParams.0}}path_params=path_params,{{/pathParams.0}}

@@ -48,7 +48,7 @@ merge_generated_models() {
 import inspect
 import sys
 import io
-import pydantic
+import pydantic.v1
 
 IO = io.IOBase
 
@@ -56,7 +56,7 @@ current_module = sys.modules[__name__]
 
 for model in inspect.getmembers(current_module, inspect.isclass):
     model_class = model[1]
-    if isinstance(model_class, pydantic.BaseModel) or hasattr(model_class, \"update_forward_refs\"):
+    if isinstance(model_class, pydantic.v1.BaseModel) or hasattr(model_class, \"update_forward_refs\"):
         model_class.update_forward_refs()
 " >> "${PACKAGE_NAME}"/models.py
 }

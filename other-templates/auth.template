@@ -4,7 +4,7 @@ from typing import Optional
 
 from fastapi.openapi.models import OAuthFlowPassword
 from httpx import Request, Response
-from pydantic import BaseModel
+from pydantic.v1 import BaseModel
 
 from @IMPORT_NAME@.api_client import AsyncSend
 from @IMPORT_NAME@.exceptions import UnexpectedResponse
