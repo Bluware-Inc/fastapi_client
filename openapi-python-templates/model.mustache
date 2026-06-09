@@ -3,7 +3,12 @@ from typing import Optional, List, Dict
 from typing import Any  # noqa
 from typing_extensions import Literal
 from uuid import UUID
+{{#pydanticV2}}
+from pydantic import BaseModel, ConfigDict, Field
+{{/pydanticV2}}
+{{^pydanticV2}}
 from pydantic import BaseModel, Field, Extra
+{{/pydanticV2}}
 
 
 {{#models}}
@@ -32,9 +37,13 @@ class {{classname}}(BaseModel):
 {{/isEnum}}
 {{/vars}}
 
+{{#pydanticV2}}
+    model_config = ConfigDict(extra="forbid")
+{{/pydanticV2}}
+{{^pydanticV2}}
     class Config:
         extra: Extra = Extra.forbid
-        
+{{/pydanticV2}}
 {{/allowableValues}}
 
 {{/model}}
