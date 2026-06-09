@@ -2,7 +2,12 @@ from asyncio import get_event_loop
 from typing import Any, Awaitable, Callable, Dict, Generic, Type, TypeVar, Optional, overload
 
 from httpx import AsyncClient, Client, Request, Response
+{{#pydanticV2}}
+from pydantic import TypeAdapter, ValidationError
+{{/pydanticV2}}
+{{^pydanticV2}}
 from pydantic import ValidationError, parse_obj_as
+{{/pydanticV2}}
 
 {{#apiInfo}}{{#apis}}from @IMPORT_NAME@.api.{{classVarName}} import Async{{classname}}, Sync{{classname}}
 {{/apis}}{{/apiInfo}}from @IMPORT_NAME@.exceptions import ResponseHandlingException, UnexpectedResponse
@@ -74,7 +79,12 @@ class AsyncApiClient:
                     return None  # type: ignore
                 if type_ == str:
                     return response.content  # type: ignore
+{{#pydanticV2}}
+                return TypeAdapter(type_).validate_python(response.json())
+{{/pydanticV2}}
+{{^pydanticV2}}
                 return parse_obj_as(type_, response.json())
+{{/pydanticV2}}
             except ValidationError as e:
                 raise ResponseHandlingException(e)
         raise UnexpectedResponse.for_response(response)
@@ -145,7 +155,12 @@ class SyncApiClient:
                     return None  # type: ignore
                 if type_ == str:
                     return response.content  # type: ignore
+{{#pydanticV2}}
+                return TypeAdapter(type_).validate_python(response.json())
+{{/pydanticV2}}
+{{^pydanticV2}}
                 return parse_obj_as(type_, response.json())
+{{/pydanticV2}}
             except ValidationError as e:
                 raise ResponseHandlingException(e)
         raise UnexpectedResponse.for_response(response)

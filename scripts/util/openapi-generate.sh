@@ -33,6 +33,14 @@ USAGE
 
 main() {
   validate_inputs
+
+  # Build the openapi-generator additional-properties. Append pydanticV2=true only when the caller
+  # opted in (generate.sh --pydantic-version 2 exports PYDANTIC_V2); absent => pydantic v1 (default).
+  ADDITIONAL_PROPS="generateSourceCodeOnly=${SOURCE_CODE_ONLY}"
+  if [ -n "$PYDANTIC_V2" ]; then
+    ADDITIONAL_PROPS="${ADDITIONAL_PROPS},pydanticV2=true"
+  fi
+
   if [ -z "$IS_HTTP" ]; then
     generate_in_docker_file "$@"
   else
@@ -62,7 +70,7 @@ generate_in_docker_http() {
     -g python \
     -o /generator-output \
     --package-name="${PACKAGE_NAME}" \
-    --additional-properties=generateSourceCodeOnly="${SOURCE_CODE_ONLY}" \
+    --additional-properties="${ADDITIONAL_PROPS}" \
     -t /local/openapi-python-templates \
     --type-mappings array=List,uuid=UUID,file=IO,object=Any \
     -i "${INPUT}" \
@@ -77,7 +85,7 @@ generate_in_docker_file() {
     -g python \
     -o /generator-output \
     --package-name="${PACKAGE_NAME}" \
-    --additional-properties=generateSourceCodeOnly="${SOURCE_CODE_ONLY}" \
+    --additional-properties="${ADDITIONAL_PROPS}" \
     -t /local/openapi-python-templates \
     --type-mappings array=List,uuid=UUID,file=IO,object=Any \
     -i /openapi.json \

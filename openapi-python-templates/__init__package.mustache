@@ -8,5 +8,11 @@ from @IMPORT_NAME@.exceptions import ApiException, UnexpectedResponse  # noqa F4
 for model in inspect.getmembers(models, inspect.isclass):
 	if model[1].__module__ == "@IMPORT_NAME@.models":
 		model_class = model[1]
+{{#pydanticV2}}
+		if issubclass(model_class, BaseModel):
+			model_class.model_rebuild()
+{{/pydanticV2}}
+{{^pydanticV2}}
 		if isinstance(model_class, BaseModel):
 			model_class.update_forward_refs()
+{{/pydanticV2}}

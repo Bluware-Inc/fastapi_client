@@ -29,7 +29,9 @@ USAGE
 main() {
   validate_inputs
   docker build -t fastapi-client-generator:latest .
-  docker run --rm --user $(id -u):$(id -g) -v "$WORK_DIR":/generator-output fastapi-client-generator:latest -p "${PACKAGE_NAME}"
+  # Forward PYDANTIC_V2 (set by generate.sh --pydantic-version 2) into the container so the
+  # models.py forward-ref loop is emitted in the matching dialect (model_rebuild vs update_forward_refs).
+  docker run --rm --user $(id -u):$(id -g) ${PYDANTIC_V2:+-e PYDANTIC_V2=true} -v "$WORK_DIR":/generator-output fastapi-client-generator:latest -p "${PACKAGE_NAME}"
   add_py_typed
 }
 

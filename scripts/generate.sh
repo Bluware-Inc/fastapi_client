@@ -19,6 +19,7 @@ WORK_DIR=""
 TEMP_DIR=""
 WITH_META=""
 MAP_LOCALHOST=""
+PYDANTIC_VERSION=""
 
 usage() {
   exitcode="$1"
@@ -34,6 +35,7 @@ Options:
   -o, --output-path        The parent folder to use for the generated package
   -t, --temp-dir           The location for temporary files
   -m, --map-localhost      (OSX): Map localhost / 127.0.0.1 to host.docker.internal
+  -V, --pydantic-version   Target pydantic major version: 1 (default) or 2
   --with-meta              Generate meta-data (setup.py, docs, tests)
   -h, --help               Show this message
 USAGE
@@ -191,6 +193,10 @@ while [ $# -gt 0 ]; do
     MAP_LOCALHOST="yes"
     shift 1
     ;;
+  -V | --pydantic-version)
+    PYDANTIC_VERSION=$2
+    shift 2
+    ;;
   --include-auth)
     INCLUDE_AUTH="yes"
     shift 1
@@ -209,5 +215,14 @@ while [ $# -gt 0 ]; do
     ;;
   esac
 done
+
+# Opt in to pydantic v2 generation. Default (unset/1) keeps the pydantic v1 output. Exported so the
+# child scripts (openapi-generate.sh adds pydanticV2=true; postprocess.sh forwards it to Docker) see it.
+if [ "$PYDANTIC_VERSION" = "2" ]; then
+  export PYDANTIC_V2="true"
+elif [ -n "$PYDANTIC_VERSION" ] && [ "$PYDANTIC_VERSION" != "1" ]; then
+  echo "Error: --pydantic-version must be 1 or 2 (got '$PYDANTIC_VERSION')"
+  usage 2
+fi
 
 main "$@"
